@@ -6053,12 +6053,6 @@ public final class Settings {
             PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_FORMAT);
             PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_POSITION);
             PRIVATE_SETTINGS.add(POCKET_JUDGE);
-<<<<<<< HEAD
-=======
-            PRIVATE_SETTINGS.add(SHOW_FOURG);
-            PRIVATE_SETTINGS.add(SHOW_VOLTE_ICON);
-            PRIVATE_SETTINGS.add(VOLTE_ICON_STYLE);
-            PRIVATE_SETTINGS.add(VOLUME_KEY_CURSOR_CONTROL);
             PRIVATE_SETTINGS.add(DISPLAY_TEMPERATURE_DAY);
             PRIVATE_SETTINGS.add(DISPLAY_TEMPERATURE_NIGHT);
             PRIVATE_SETTINGS.add(DISPLAY_TEMPERATURE_MODE);
@@ -6070,7 +6064,6 @@ public final class Settings {
             PRIVATE_SETTINGS.add(DISPLAY_COLOR_ADJUSTMENT);
             PRIVATE_SETTINGS.add(DISPLAY_PICTURE_ADJUSTMENT);
             PRIVATE_SETTINGS.add(LIVE_DISPLAY_HINTED);
->>>>>>> 51f4957736b... Introduce LiveDisplay from Lineage
         }
 
         /**
