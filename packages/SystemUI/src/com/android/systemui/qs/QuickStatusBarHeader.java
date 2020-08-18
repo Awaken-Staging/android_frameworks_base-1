@@ -145,6 +145,7 @@ public class QuickStatusBarHeader extends RelativeLayout implements
     private boolean mExpanded;
     private boolean mListening;
     private boolean mQsDisabled;
+    private boolean mShowSettingsIcon;
 
     private QSCarrierGroup mCarrierGroup;
     protected QuickQSPanel mHeaderQsPanel;
@@ -211,6 +212,9 @@ public class QuickStatusBarHeader extends RelativeLayout implements
                     this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System
                     .getUriFor(Settings.System.QS_DATAUSAGE), false,
+                    this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.QS_PERSISTENT_SETTINGS_ICON), false,
                     this, UserHandle.USER_ALL);
             }
 
@@ -533,6 +537,11 @@ public class QuickStatusBarHeader extends RelativeLayout implements
         } else {
             lp.height = WRAP_CONTENT;
         }
+        // Lower the height if none of our custom options require the display space
+        if (!mShowSettingsIcon) {
+            lp.height -= 60;
+        }
+
         setLayoutParams(lp);
 
         updateStatusIconAlphaAnimator();
@@ -544,6 +553,7 @@ public class QuickStatusBarHeader extends RelativeLayout implements
         updateQSBatteryMode();
         updateSBBatteryStyle();
 	updateDataUsageView();
+        updateQSSettingsIcon();
      }
 
      private void updateQSBatteryMode() {
@@ -584,6 +594,11 @@ public class QuickStatusBarHeader extends RelativeLayout implements
             mDataUsageImage.setVisibility(View.GONE);
             mDataUsageLayout.setVisibility(View.GONE);
         }
+    }
+
+    private void updateQSSettingsIcon() {
+        mShowSettingsIcon = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.QS_PERSISTENT_SETTINGS_ICON, 1, UserHandle.USER_CURRENT) == 1;
     }
 
     private void updateStatusIconAlphaAnimator() {

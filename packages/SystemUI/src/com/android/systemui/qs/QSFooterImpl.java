@@ -20,6 +20,7 @@ import static android.app.StatusBarManager.DISABLE2_QUICK_SETTINGS;
 
 import static com.android.systemui.util.InjectionInflationController.VIEW_CONTEXT;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -35,6 +36,7 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
 import android.util.AttributeSet;
+import android.net.Uri;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
@@ -103,16 +105,12 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
 
     private View mActionsContainer;
 
-    private OnClickListener mExpandClickListener;
+    private int mShowDragHandle;
+    private int mShowSettingsIcon;
+    private ContentResolver mResolver;
+    private SettingObserver mSettingObserver;
 
-    /*private final ContentObserver mDeveloperSettingsObserver = new ContentObserver(
-            new Handler(mContext.getMainLooper())) {
-        @Override
-        public void onChange(boolean selfChange, Uri uri) {
-            super.onChange(selfChange, uri);
-            setBuildText();
-        }
-    };*/
+    private OnClickListener mExpandClickListener;
 
     @Inject
     public QSFooterImpl(@Named(VIEW_CONTEXT) Context context, AttributeSet attrs,
@@ -168,6 +166,8 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
                 oldBottom) -> updateAnimator(right - left));
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
         updateEverything();
+        setQSSettingsIcon();
+        updateResources();
         //setBuildText();
     }
 
@@ -189,6 +189,7 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
     }
 
     private void updateAnimator(int width) {
+        if (mShowSettingsIcon != 0) return;
         mSettingsCogAnimator = new Builder()
                 .addFloat(mSettingsButton, "rotation", -120, 0)
                 .build();
@@ -199,7 +200,9 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
     @Override
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        setQSSettingsIcon();
         updateResources();
+        updateEverything();
     }
 
     @Override
@@ -219,7 +222,7 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
     @Nullable
     private TouchAnimator createFooterAnimator() {
         return new TouchAnimator.Builder()
-                .addFloat(mActionsContainer, "alpha", 1, 1) // contains mRunningServicesButton
+                .addFloat(mActionsContainer, "alpha", mShowSettingsIcon, 1) // contains mRunningServicesButton
                 .addFloat(mEditContainer, "alpha", 0, 1)
                 .addFloat(mPageIndicator, "alpha", 0, 1)
                 .setStartDelay(0.9f)
@@ -256,16 +259,15 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        /*mContext.getContentResolver().registerContentObserver(
-                Settings.Global.getUriFor(Settings.Global.DEVELOPMENT_SETTINGS_ENABLED), false,
-                mDeveloperSettingsObserver, UserHandle.USER_ALL);*/
+        mSettingObserver = new SettingObserver(new Handler(mContext.getMainLooper()));
+        mSettingObserver.observe();
+        mSettingObserver.update();
     }
 
     @Override
     @VisibleForTesting
     public void onDetachedFromWindow() {
         setListening(false);
-        //mContext.getContentResolver().unregisterContentObserver(mDeveloperSettingsObserver);
         super.onDetachedFromWindow();
     }
 
@@ -314,7 +316,9 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
     private void updateClickabilities() {
         mMultiUserSwitch.setClickable(mMultiUserSwitch.getVisibility() == View.VISIBLE);
         mEdit.setClickable(mEdit.getVisibility() == View.VISIBLE);
-        mSettingsButton.setClickable(mSettingsButton.getVisibility() == View.VISIBLE);
+        if (mShowSettingsIcon != 1) {
+            mSettingsButton.setClickable(mSettingsButton.getVisibility() == View.VISIBLE);
+        }
     }
 
     private void updateVisibilities() {
@@ -324,7 +328,11 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
         mEditContainer.setVisibility(isDemo || !mExpanded ? View.INVISIBLE : View.VISIBLE);
         mRunningServicesButton.setVisibility(!isDemo && mExpanded ? View.VISIBLE : View.INVISIBLE);
         mBuildText.setVisibility(mExpanded && mShouldShowBuildText ? View.VISIBLE : View.GONE);
-        mSettingsButton.setVisibility(isDemo || !mExpanded ? View.VISIBLE : View.VISIBLE);
+        if ((isDemo || !mExpanded) && mShowSettingsIcon != 1) {
+            mSettingsButton.setVisibility(View.INVISIBLE);
+        } else {
+            mSettingsButton.setVisibility(View.VISIBLE);
+        }
     }
 
     private boolean showUserSwitcher() {
@@ -413,5 +421,38 @@ public class QSFooterImpl extends FrameLayout implements QSFooter,
                     Mode.SRC_IN);
         }
         mMultiUserAvatar.setImageDrawable(picture);
+    }
+
+    private final class SettingObserver extends ContentObserver {
+        public SettingObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QS_PERSISTENT_SETTINGS_ICON),
+                    false, this, UserHandle.USER_ALL);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            super.onChange(selfChange, uri);
+            if (uri.equals(Settings.System.getUriFor(Settings.System.QS_PERSISTENT_SETTINGS_ICON))) {
+                update();
+                updateResources();
+            }
+        }
+
+        public void update() {
+            setQSSettingsIcon();
+        }
+    }
+
+    private void setQSSettingsIcon() {
+        mShowSettingsIcon = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.QS_PERSISTENT_SETTINGS_ICON, 1,
+                UserHandle.USER_CURRENT);
+        createFooterAnimator();
     }
 }

@@ -5143,6 +5143,12 @@ public final class Settings {
                 "status_bar_locked_on_secure_keyguard";
 
         /**
+         * Whether to persistently show the settings icon on qs panel
+         * @hide
+         */
+        public static final String QS_PERSISTENT_SETTINGS_ICON = "qs_persistent_settings_icon";
+
+        /**
          * Disable power menu on secure lock screens
          *
          * @hide
