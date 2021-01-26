@@ -98,6 +98,22 @@
         <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 
+    <style name="TextAppearance.QSHeader.Clock" parent="@*android:style/TextAppearance.StatusBar.Icon">
+        <item name="android:fontFamily">@*android:string/config_headlineFontFamilyMedium</item>
+        <item name="android:textColor">@color/status_bar_clock_color</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.QS.Header" parent="TextAppearance.QS.TileLabel.Secondary">
+        <item name="android:fontFamily">@*android:string/config_bodyFontFamily</item>
+        <item name="android:textColor">@color/status_bar_clock_color</item>
+    </style>
+
+    <style name="QQSHeaderTheme" parent="@style/Theme.SystemUI">
+        <item name="lightIconTheme">@style/DualToneLightTheme</item>
+        <item name="darkIconTheme">@style/DualToneLightTheme</item>
+    </style>
+
     <style name="TextAppearance.StatusBar.Expanded" parent="@*android:style/TextAppearance.StatusBar">
         <item name="android:textColor">?android:attr/textColorTertiary</item>
     </style>
