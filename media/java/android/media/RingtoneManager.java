@@ -1224,7 +1224,7 @@ public class RingtoneManager {
             // overwrite the user changing to null
             final String setting = getDefaultRingtoneSetting(type);
             if (Settings.System.getInt(context.getContentResolver(), setting, 0) != 0) {
-                continue;
+                    continue;
             }
 
             // Try finding the scanned ringtone
